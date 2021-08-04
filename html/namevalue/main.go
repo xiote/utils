@@ -16,6 +16,11 @@ type NameValue struct {
 	Value string
 }
 
+type IdValue struct {
+	Id    string
+	Value string
+}
+
 func GetNameValue(nameValues []NameValue, name string) (nameValue NameValue) {
 	for _, item := range nameValues {
 		if item.Name == name {
@@ -37,9 +42,9 @@ func GetValue(nameValues []NameValue, name string) (value string) {
 }
 
 func UpdateNameValue(ptNameValues *[]NameValue, name string, value string) (err error) {
-	for _, item := range *ptNameValues {
+	for idx, item := range *ptNameValues {
 		if item.Name == name {
-			item.Value = value
+			(*ptNameValues)[idx].Value = value
 			break
 		}
 	}
@@ -68,6 +73,31 @@ func ExtractNameValue(html string, xpath string) (nameValues []NameValue, err er
 
 	for _, input := range list {
 		nameValues = append(nameValues, NameValue{htmlquery.SelectAttr(input, "name"), Transform(htmlquery.SelectAttr(input, "value"), "euc-kr")})
+	}
+	return
+
+}
+
+func ExtractIdValueUtf8(html string, xpath string) (idValues []IdValue, err error) {
+	doc, err := htmlquery.Parse(strings.NewReader(html))
+	if err != nil {
+		err = err
+		return
+	}
+
+	list, err := htmlquery.QueryAll(doc, xpath)
+	if err != nil {
+		err = err
+		return
+	}
+
+	if len(list) == 0 {
+		err = fmt.Errorf("Cannot find node : %s", xpath)
+		return
+	}
+
+	for _, input := range list {
+		idValues = append(idValues, IdValue{htmlquery.SelectAttr(input, "id"), htmlquery.SelectAttr(input, "value")})
 	}
 	return
 
